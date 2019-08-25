@@ -7,6 +7,7 @@
 #include "Sprite.h"
 #include "../main/Constants.h"
 
+using namespace std;
 using namespace game2048::main;
 using namespace game2048::graphics;
 
@@ -24,8 +25,8 @@ Sprite *Sprite::Cell1024 = new Sprite(1024);
 Sprite *Sprite::Cell2048 = new Sprite(2048);
 
 Sprite::Sprite(int number) {
+    stringstream name;
     spriteNumber = number;
-    std::stringstream name;
     name << "res/" << number << ".png";
 
     texture = new sf::Texture();

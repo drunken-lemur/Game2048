@@ -2,8 +2,10 @@
 // Created by Alexey Karasev on 24/08/2019.
 //
 
+#include "iostream"
 #include "GameField.h"
 
+using namespace std;
 using namespace game2048::main;
 
 GameField::GameField() {
@@ -57,17 +59,35 @@ array<int, COUNT_CELLS_Y> GameField::getColumn(int x) {
  */
 void GameField::setColumn(int x, array<int, COUNT_CELLS_Y> newColumn) {
 //    theField[x] = newColumn;
-    for(int y = 0; y < COUNT_CELLS_Y; y++) {
+    for (int y = 0; y < COUNT_CELLS_Y; y++) {
         theField[x][y] = newColumn[y];
     }
 }
 
 array<int, COUNT_CELLS_X> GameField::getLine(int y) {
-    return {}; //  todo
+    array<int, COUNT_CELLS_X> res{};
+
+    for (int x = 0; x < COUNT_CELLS_X; x++) {
+        res[x] = theField[x][y];
+    }
+
+    return res;
 }
 
 void GameField::setLine(int y, array<int, COUNT_CELLS_X> newLine) {
     for (int x = 0; x < COUNT_CELLS_X; x++) {
         theField[x][y] = newLine[x];
     }
+}
+
+void GameField::log() {
+    for (int x = 0; x < COUNT_CELLS_X; x++) {
+        for (int y = 0; y < COUNT_CELLS_Y; y++) {
+            cout << theField[x][y] << "\t";
+        }
+
+        cout << endl;
+    }
+
+    cout << endl;
 }

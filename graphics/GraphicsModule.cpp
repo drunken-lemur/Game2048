@@ -2,6 +2,7 @@
 // Created by Alexey Karasev on 24/08/2019.
 //
 
+#include <sstream>
 #include <iostream>
 #include "Sprite.h"
 #include "GraphicsModule.h"
@@ -48,7 +49,7 @@ void GraphicsModule::draw(GameField *gameField) {
 }
 
 void GraphicsModule::destroy() {
-    cout << "destroy" << endl;
+    window->close();
 }
 
 bool GraphicsModule::isCloseRequested() {
@@ -61,4 +62,12 @@ bool GraphicsModule::isCloseRequested() {
     }
 
     return false;
+}
+
+void GraphicsModule::updateScoreInTitle(int score) {
+    stringstream title;
+
+    title << SCREEN_NAME << ": " << score;
+
+    window->setTitle(title.str());
 }

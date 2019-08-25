@@ -22,6 +22,8 @@ namespace game2048 {
 
             bool isCloseRequested();
 
+            void updateScoreInTitle(int score);
+
         private:
             sf::RenderWindow *window;
         };

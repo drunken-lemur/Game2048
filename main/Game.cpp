@@ -34,6 +34,13 @@ void Game::start() {
         logic();
 
         graphicsModule->draw(gameField);
+
+        // move to keyboard handler
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R) ){
+            graphicsModule->destroy();
+            start();
+            endOfGame = true;
+        }
     }
 
     graphicsModule->destroy();
@@ -48,7 +55,7 @@ void Game::initFields() {
     score = 0;
     endOfGame = false;
     isThere2048 = false;
-    direction = Direction::AWAITING;
+    direction = AWAITING;
 
     gameField = new GameField();
     graphicsModule = new GraphicsModule();
@@ -132,12 +139,15 @@ void Game::input() {
  * Если сдвиг удался, создаёт новую плитку.
  */
 void Game::logic() {
-    if (direction != Direction::AWAITING) {
+    if (direction != AWAITING) {
+        gameField->log();
+
         if (shift(direction)) {
             generateNewCell();
         }
 
-        direction = Direction::AWAITING;
+        direction = AWAITING;
+        graphicsModule->updateScoreInTitle(score);
     }
 }
 
@@ -148,35 +158,91 @@ void Game::logic() {
  * @param direction Направление, в котором необходимо совершить сдвиг
  * @return Возвращает true, если сдвиг прошёл успешно (поле изменилось)
  */
-bool Game::shift(Direction d) {
+bool Game::shift(Direction direction) {
     bool ret = false;
 
-    switch (d) {
+    switch (direction) {
         case UP:
         case DOWN:
-            generateNewCell(); // todo
             /* По очереди сдвигаем числа всех столбцов в нужном направлении */
             for (int i = 0; i < COUNT_CELLS_X; i++) {
                 /* Запрашиваем очередной столбец */
+                array<int, COUNT_CELLS_Y> arg = gameField->getColumn(i);
+
                 /* В зависимости от направления сдвига, меняем или не меняем порядок чисел на противоположный */
+                if (direction == UP) {
+                    array<int, COUNT_CELLS_Y> tmp{};
+
+                    for (int e = 0; e < COUNT_CELLS_Y; e++) {
+                        tmp[e] = arg[COUNT_CELLS_Y - e - 1];
+                    }
+
+                    arg = tmp;
+                }
+
                 /* Пытаемся сдвинуть числа в этом столбце */
+                ShiftRowResult *result = shiftRow(arg);
+
                 /* Возвращаем линию в исходный порядок */
+                if (direction == UP) {
+                    array<int, COUNT_CELLS_Y> tmp{};
+
+                    for (int e = 0; e < COUNT_CELLS_Y; e++) {
+                        tmp[e] = result->getShiftedRow()[COUNT_CELLS_Y - e - 1];
+                    }
+
+                    result->setShiftedRow(tmp);
+                }
+
                 /* Записываем изменённый столбец */
+                gameField->setColumn(i, result->getShiftedRow());
+
                 /* Если хоть одна линия была изменена, значит было изменено всё поле */
+                ret = ret || result->didAnythingMove;
+
+                delete result;
             }
             break;
 
         case LEFT:
         case RIGHT:
-            generateNewCell(); // todo
             /* По очереди сдвигаем числа всех строк в нужном направлении */
             for (int i = 0; i < COUNT_CELLS_Y; i++) {
                 /* Запрашиваем очередную строку */
+                array<int, COUNT_CELLS_X> arg = gameField->getLine(i);
+
                 /* В зависимости от направления сдвига, меняем или не меняем порядок чисел на противоположный */
-                /* Пытаемся сдвинуть числа в этом столбце */
+                if (direction == RIGHT) {
+                    array<int, COUNT_CELLS_X> tmp{};
+
+                    for (int e = 0; e < COUNT_CELLS_Y; e++) {
+                        tmp[e] = arg[COUNT_CELLS_Y - e - 1];
+                    }
+
+                    arg = tmp;
+                }
+
+                /* Пытаемся сдвинуть числа в этом строке */
+                ShiftRowResult *result = shiftRow(arg);
+
                 /* Возвращаем линию в исходный порядок */
+                if (direction == RIGHT) {
+                    array<int, COUNT_CELLS_X> tmp{};
+
+                    for (int e = 0; e < COUNT_CELLS_X; e++) {
+                        tmp[e] = result->getShiftedRow()[COUNT_CELLS_X - e - 1];
+                    }
+
+                    result->setShiftedRow(tmp);
+                }
+
                 /* Записываем изменённую строку */
+                gameField->setLine(i, result->getShiftedRow());
+
                 /* Если хоть одна линия была изменена, значит было изменено всё поле */
+                ret = ret || result->didAnythingMove;
+
+                delete result;
             }
             break;
 
@@ -185,4 +251,77 @@ bool Game::shift(Direction d) {
     }
 
     return ret;
+}
+
+ShiftRowResult *Game::shiftRow(array<int, COUNT_CELLS_X> oldRow) {
+    ShiftRowResult *result = new ShiftRowResult();
+
+    result->setShiftedRow(oldRow);
+
+    array<int, COUNT_CELLS_X> oldRowWithoutZeroes{};
+    {
+        int q = 0;
+
+        for (int i = 0; i < COUNT_CELLS_X; i++) {
+            if (oldRow[i] != 0) {
+                if (q != i) {
+                    /*
+                     * Это значит, что мы передвинули ячейку
+                     * на место какого-то нуля (пустой плитки)
+                     */
+                    result->didAnythingMove = true;
+                }
+
+                oldRowWithoutZeroes[q] = oldRow[i];
+                q++;
+            }
+        }
+
+        /* Чтобы избежать null'ов в конце массива */
+        for (int i = q; i < COUNT_CELLS_X; i++) {
+            oldRowWithoutZeroes[i] = 0;
+        }
+    }
+
+    result->setShiftedRow({});
+
+    {
+        int q = 0;
+
+        int i = 0;
+
+        while (i < COUNT_CELLS_X) {
+            if ((i + 1 < COUNT_CELLS_X) && (oldRowWithoutZeroes[i] == oldRowWithoutZeroes[i + 1])
+                && oldRowWithoutZeroes[i] != 0) {
+                result->didAnythingMove = true;
+                result->shiftedRow[q] = oldRowWithoutZeroes[i] * 2;
+                if (result->shiftedRow[q] == 2048) {
+                    merged2048();
+                }
+                i++;
+            } else {
+                result->shiftedRow[q] = oldRowWithoutZeroes[i];
+            }
+
+            q++;
+            i++;
+        }
+
+        // Чтобы избежать null'ов в конце массива
+        for (int j = q; j < COUNT_CELLS_X; j++) {
+            result->shiftedRow[j] = 0;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Описывает действия в случае победы пользователя (если пользователь создал плитку 2048).
+ *
+ * Сейчас: устанавливает флаг победы на true, завершает игру.
+ */
+void Game::merged2048() {
+    endOfGame = true;
+    isThere2048 = true;
 }

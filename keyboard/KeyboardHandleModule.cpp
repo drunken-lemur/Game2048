@@ -17,7 +17,7 @@ KeyboardHandleModule::KeyboardHandleModule() = default;
 void KeyboardHandleModule::update() {
     resetValues();
 
-    if (Keyboard::isKeyPressed(Keyboard::Escape)) {
+    if (Keyboard::isKeyPressed(Keyboard::Escape) || Keyboard::isKeyPressed(Keyboard::Q)) {
         isWasEscPressed = true;
     } else if (Keyboard::isKeyPressed(Keyboard::Up)) {
         lastDirectionKey = UP;

@@ -29,6 +29,8 @@ namespace game2048 {
 
             void setLine(int y, array<int, COUNT_CELLS_X> newLine);
 
+            void log();
+
         private:
             array<array<int, COUNT_CELLS_Y>, COUNT_CELLS_X> theField;
         };

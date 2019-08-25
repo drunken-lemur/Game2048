@@ -5,6 +5,7 @@
 #ifndef GAME2048_GAME_H
 #define GAME2048_GAME_H
 
+#include <array>
 #include "../main/Constants.h"
 #include "../main/GameField.h"
 #include "../main/Direction.h"
@@ -17,6 +18,23 @@ using namespace game2048::keyboard;
 
 namespace game2048 {
     namespace main {
+        class ShiftRowResult {
+        public:
+            bool didAnythingMove;
+
+            array<int, COUNT_CELLS_X> shiftedRow;
+
+            array<int, COUNT_CELLS_X> getShiftedRow() {
+                return shiftedRow;
+            }
+
+            void setShiftedRow(array<int, COUNT_CELLS_X> shiftedRow) {
+                for (int y = 0; y < COUNT_CELLS_X; y++) {
+                    this->shiftedRow[y] = shiftedRow[y];
+                }
+            }
+        };
+
         class Game {
         private:
             static int score; // Сумма всех чисел на поле
@@ -43,6 +61,10 @@ namespace game2048 {
             static void logic();
 
             static bool shift(Direction direction);
+
+            static ShiftRowResult *shiftRow(array<int, COUNT_CELLS_X> oldRow);
+
+            static void merged2048();
 
         public:
             static void start();
