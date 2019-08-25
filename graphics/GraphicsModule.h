@@ -5,10 +5,28 @@
 #ifndef GAME2048_GRAPHICSMODULE_H
 #define GAME2048_GRAPHICSMODULE_H
 
+#include <SFML/Graphics.hpp>
+#include "../main/GameField.h"
 
-class GraphicsModule {
+namespace game2048 {
+    namespace graphics {
+        class GraphicsModule {
+        public:
+            GraphicsModule();
 
-};
+            virtual ~GraphicsModule();
+
+            void draw(GameField *gameField);
+
+            void destroy();
+
+            bool isCloseRequested();
+
+        private:
+            sf::RenderWindow *window;
+        };
+    }
+}
 
 
 #endif //GAME2048_GRAPHICSMODULE_H
